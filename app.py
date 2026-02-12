@@ -152,16 +152,19 @@ def transcribe_audio(client: OpenAI, audio_bytes: bytes) -> Optional[str]:
 def get_answer_from_rag(query: str, vector_store: FAISS, client: OpenAI) -> tuple[str, str]:
     """Get answer using RAG pipeline."""
     try:
-        # Perform similarity search
-        docs = vector_store.similarity_search(query, k=TOP_K_RESULTS)
+        # Perform similarity search with scores to get most relevant documents
+        docs_with_scores = vector_store.similarity_search_with_score(query, k=TOP_K_RESULTS)
         
-        if not docs:
+        if not docs_with_scores:
             return "मुझे इस सवाल का जवाब मैनुअल में नहीं मिला। / I couldn't find an answer in the manuals.", "N/A"
+        
+        # Extract documents and sort by score (lower score = more similar)
+        docs = [doc for doc, score in docs_with_scores]
         
         # Prepare context from retrieved documents
         context = "\n\n".join([doc.page_content for doc in docs])
         
-        # Extract source filename (from the first most relevant document)
+        # Extract source from the MOST relevant document (first one, lowest score)
         source = docs[0].metadata.get("source", "Unknown")
         
         # Generate answer using GPT-4o
