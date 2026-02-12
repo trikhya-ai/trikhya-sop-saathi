@@ -118,6 +118,9 @@ def initialize_session_state():
     if "vector_store" not in st.session_state:
         st.session_state.vector_store = None
         st.session_state.vector_store_loaded = False
+    
+    if "last_processed_audio" not in st.session_state:
+        st.session_state.last_processed_audio = None
 
 # ============================================================================
 # CORE FUNCTIONS
@@ -331,50 +334,55 @@ def main():
     audio_bytes = st.audio_input("Record your question")
     
     if audio_bytes:
-        with st.spinner("🎧 Transcribing your question..."):
-            # Transcribe audio
-            question = transcribe_audio(client, audio_bytes.getvalue())
+        # Get audio hash to prevent reprocessing the same audio
+        audio_data = audio_bytes.getvalue()
+        audio_hash = hash(audio_data)
         
-        if question:
-            # Display transcribed question
-            st.info(f"**You asked:** {question}")
+        # Only process if this is new audio
+        if audio_hash != st.session_state.last_processed_audio:
+            st.session_state.last_processed_audio = audio_hash
             
-            # Add to chat history
-            st.session_state.messages.append({
-                "role": "user",
-                "content": question
-            })
+            with st.spinner("🎧 Transcribing your question..."):
+                # Transcribe audio
+                question = transcribe_audio(client, audio_data)
             
-            with st.spinner("🧠 Searching manuals and generating answer..."):
-                # Get answer from RAG
-                answer, source = get_answer_from_rag(
-                    question, 
-                    st.session_state.vector_store, 
-                    client
-                )
-            
-            # Add to chat history
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": answer,
-                "source": source
-            })
-            
-            # Display answer
-            with st.chat_message("assistant", avatar="🤖"):
-                st.markdown(f"**Answer:** {answer}")
-                if source != "N/A":
-                    st.caption(f"📄 Source: {source}")
-            
-            # Convert to speech and autoplay
-            with st.spinner("🔊 Generating audio response..."):
-                audio_response = text_to_speech(client, answer)
-            
-            if audio_response:
-                st.audio(audio_response, format="audio/mp3", autoplay=True)
-            
-            # Rerun to update chat history display
-            st.rerun()
+            if question:
+                # Display transcribed question
+                st.info(f"**You asked:** {question}")
+                
+                # Add to chat history
+                st.session_state.messages.append({
+                    "role": "user",
+                    "content": question
+                })
+                
+                with st.spinner("🧠 Searching manuals and generating answer..."):
+                    # Get answer from RAG
+                    answer, source = get_answer_from_rag(
+                        question, 
+                        st.session_state.vector_store, 
+                        client
+                    )
+                
+                # Add to chat history
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": answer,
+                    "source": source
+                })
+                
+                # Display answer
+                with st.chat_message("assistant", avatar="🤖"):
+                    st.markdown(f"**Answer:** {answer}")
+                    if source != "N/A":
+                        st.caption(f"📄 Source: {source}")
+                
+                # Convert to speech and autoplay
+                with st.spinner("🔊 Generating audio response..."):
+                    audio_response = text_to_speech(client, answer)
+                
+                if audio_response:
+                    st.audio(audio_response, format="audio/mp3", autoplay=True)
 
 if __name__ == "__main__":
     main()
