@@ -7,6 +7,9 @@ venv/
 # Streamlit secrets (keep .example files)
 .streamlit/secrets.toml
 
+# Test files with API keys
+test_key.py
+
 # Python cache
 __pycache__/
 *.py[cod]
