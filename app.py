@@ -256,10 +256,35 @@ def render_header():
         margin: 1rem 0;
     }
     
-    /* Make chat bubbles more readable */
+    /* Enhanced chat bubble styling with distinct colors */
     .stChatMessage {
         border-radius: 12px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* User messages - Light Blue background */
+    [data-testid="stChatMessageContent"]:has(+ [data-testid="stChatMessageAvatar"]:contains("👷")) {
+        background-color: #E3F2FD !important;
+        border-left: 4px solid #2196F3 !important;
+    }
+    
+    /* Assistant messages - Light Green background */
+    [data-testid="stChatMessageContent"]:has(+ [data-testid="stChatMessageAvatar"]:contains("🤖")) {
+        background-color: #E8F5E9 !important;
+        border-left: 4px solid #4CAF50 !important;
+    }
+    
+    /* Alternative approach using attribute selectors */
+    div[data-testid="stChatMessage"]:has(div[aria-label*="user"]) {
+        background-color: #E3F2FD !important;
+        border-left: 4px solid #2196F3 !important;
+    }
+    
+    div[data-testid="stChatMessage"]:has(div[aria-label*="assistant"]) {
+        background-color: #E8F5E9 !important;
+        border-left: 4px solid #4CAF50 !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -295,8 +320,9 @@ def render_sidebar():
         """)
 
 def render_chat_history():
-    """Render chat history."""
-    for message in st.session_state.messages:
+    """Render chat history in reverse order (newest first)."""
+    # Reverse the messages to show latest first
+    for message in reversed(st.session_state.messages):
         role = message["role"]
         content = message["content"]
         source = message.get("source", "")
@@ -342,10 +368,7 @@ def main():
         st.error("⚠️ Please add PDF manuals to the 'manuals' folder and restart the app.")
         st.stop()
     
-    # Display chat history
-    render_chat_history()
-    
-    # Audio input
+    # Audio input section (MOVED TO TOP)
     st.markdown("### 🎤 Ask Your Question")
     st.info("👇 Tap the microphone below to record your question")
     audio_bytes = st.audio_input("Record your question")
@@ -400,6 +423,15 @@ def main():
                 
                 if audio_response:
                     st.audio(audio_response, format="audio/mp3", autoplay=True)
+    
+    # Divider before history
+    st.divider()
+    
+    # Chat history section (NOW BELOW INPUT)
+    if st.session_state.messages:
+        st.markdown("### 📜 Chat History")
+        st.caption("Latest questions and answers appear first")
+        render_chat_history()
 
 if __name__ == "__main__":
     main()
