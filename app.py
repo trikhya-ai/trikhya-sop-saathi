@@ -410,19 +410,37 @@ def render_sidebar():
         """)
 
 def render_chat_history():
-    """Render chat history in reverse order (newest first)."""
-    # Reverse the messages to show latest first
-    for message in reversed(st.session_state.messages):
-        role = message["role"]
-        content = message["content"]
-        source = message.get("source", "")
-        
-        if role == "user":
-            with st.chat_message("user", avatar="👷"):
-                st.markdown(f"**Question:** {content}")
+    """Render chat history with Q&A pairs grouped correctly (newest first)."""
+    # Group messages into Q&A pairs
+    qa_pairs = []
+    i = 0
+    while i < len(st.session_state.messages):
+        if i + 1 < len(st.session_state.messages):
+            # Check if we have a user-assistant pair
+            if (st.session_state.messages[i]["role"] == "user" and 
+                st.session_state.messages[i + 1]["role"] == "assistant"):
+                qa_pairs.append((st.session_state.messages[i], st.session_state.messages[i + 1]))
+                i += 2
+            else:
+                # Single message without pair
+                qa_pairs.append((st.session_state.messages[i], None))
+                i += 1
         else:
+            # Last message without pair
+            qa_pairs.append((st.session_state.messages[i], None))
+            i += 1
+    
+    # Reverse to show latest first, but keep Q&A pairs together
+    for user_msg, assistant_msg in reversed(qa_pairs):
+        # Display user question
+        with st.chat_message("user", avatar="👷"):
+            st.markdown(f"**Question:** {user_msg['content']}")
+        
+        # Display assistant answer if exists
+        if assistant_msg:
             with st.chat_message("assistant", avatar="🤖"):
-                st.markdown(f"**Answer:** {content}")
+                st.markdown(f"**Answer:** {assistant_msg['content']}")
+                source = assistant_msg.get("source", "")
                 if source and source != "N/A":
                     st.caption(f"📄 Source: {source}")
 
