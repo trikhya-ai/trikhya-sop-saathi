@@ -9,157 +9,120 @@ A voice-activated AI supervisor for factory floor workers that answers questions
 - **RAG Pipeline**: Searches through PDF manuals using FAISS vector database
 - **Audio Output**: Text-to-speech responses for hands-free operation
 - **Source Citations**: Shows which manual the answer came from
-- **Chat History**: Maintains conversation context
+- **Mobile Optimized**: Responsive design for factory floor use
 
 ## 🛠️ Tech Stack
 
 - **Frontend**: Streamlit
 - **Orchestration**: LangChain
-- **AI Models**: 
-  - OpenAI Whisper (Speech-to-Text)
-  - GPT-4o (Question Answering)
-  - TTS-1 (Text-to-Speech)
+- **AI Models**: OpenAI Whisper (ASR), GPT-4o (Logic), TTS-1 (Audio Output)
 - **Vector Database**: FAISS
 - **PDF Processing**: PyPDF
 
-## 📋 Prerequisites
+---
 
-- Python 3.9 or higher
+## � Streamlit Cloud Deployment
+
+### Prerequisites
+
+- GitHub account
+- Streamlit Cloud account (free at https://share.streamlit.io/)
 - OpenAI API key
 
-## 🚀 Installation
+### Deployment Steps
 
-1. **Clone or navigate to the project directory**
-
-2. **Install dependencies**
+1. **Push to GitHub**:
    ```bash
-   pip install -r requirements.txt
+   git add .
+   git commit -m "Initial commit: Trikhya SOP Saathi"
+   git remote add origin https://github.com/YOUR_USERNAME/trikhya-sop-saathi.git
+   git push -u origin main
    ```
 
-3. **Set up your OpenAI API key**
-   
-   Create a `.env` file in the project root:
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Edit `.env` and add your OpenAI API key:
-   ```
-   OPENAI_API_KEY=sk-your-actual-api-key-here
-   ```
+2. **Deploy on Streamlit Cloud**:
+   - Go to https://share.streamlit.io/
+   - Sign in with GitHub
+   - Click "New app" → Select your repository
+   - Main file path: `app.py`
+   - Click "Advanced settings" → "Secrets"
+   - Add your OpenAI API key:
+     ```toml
+     OPENAI_API_KEY = "sk-your-actual-openai-api-key-here"
+     ```
+   - Click "Deploy!"
 
-4. **Add PDF manuals**
-   
-   Create a `manuals` folder and add your PDF files:
-   ```bash
-   mkdir manuals
-   # Copy your PDF manuals to the manuals/ folder
-   ```
+3. **Access Your App**:
+   - Your app will be live at: `https://trikhya-sop-saathi.streamlit.app`
+   - Share this URL with factory supervisors
+   - No installation or setup needed on their end!
 
-## ▶️ Running the Application
+### Updating the App
 
-### Option 1: Quick Start (Recommended)
-
-Use the provided setup script that handles everything:
-
+To make changes after deployment:
 ```bash
-./setup_and_run.sh
+git add .
+git commit -m "Description of changes"
+git push
 ```
 
-This script will:
-- Create a virtual environment (if not exists)
-- Install all dependencies
-- Run the application with network access for mobile devices
+Streamlit Cloud will automatically redeploy within 1-2 minutes.
 
-### Option 2: Manual Setup
-
-1. **Create virtual environment:**
-   ```bash
-   python3 -m venv venv
-   ```
-
-2. **Activate virtual environment:**
-   ```bash
-   source venv/bin/activate  # On Mac/Linux
-   # OR
-   venv\Scripts\activate     # On Windows
-   ```
-
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Run the application:**
-   ```bash
-   streamlit run app.py
-   ```
-
-The application will open in your default browser at `http://localhost:8501`
-
-### 📱 Mobile Access
-
-To access the app on your mobile device:
-
-1. Make sure your mobile and computer are on the **same WiFi network**
-2. Run the app with network access:
-   ```bash
-   streamlit run app.py --server.address=0.0.0.0
-   ```
-3. Look for the **Network URL** in the terminal output (e.g., `http://192.168.x.x:8501`)
-4. Open that URL on your mobile browser
-
-**Note:** The `setup_and_run.sh` script automatically enables network access for mobile demos.
+---
 
 ## 📖 Usage
 
-1. **Record Question**: Click the microphone icon and ask your question in Hindi, Marathi, or English
-2. **Wait for Processing**: The app will transcribe, search manuals, and generate an answer
-3. **Listen to Response**: The answer will be played automatically via audio
-4. **View Source**: Check which manual the answer came from
+1. **Open the app** on any device with internet
+2. **Tap the microphone** icon to record your question
+3. **Wait** for AI to process (transcribe → search → generate answer)
+4. **Listen** to the audio response
+5. **Check** the source document citation
+
+**Supported Languages**: Hindi (हिंदी), Marathi (मराठी), English
+
+---
 
 ## 🏗️ Project Structure
 
 ```
 spark_minda_agent/
-├── app.py                 # Main Streamlit application
-├── requirements.txt       # Python dependencies
-├── .env.example          # Environment variable template
-├── .env                  # Your API keys (create this)
-├── manuals/              # PDF manuals folder (create this)
-│   ├── manual1.pdf
-│   └── manual2.pdf
-└── README.md             # This file
+├── app.py                    # Main Streamlit application
+├── requirements.txt          # Python dependencies
+├── .streamlit/
+│   ├── config.toml          # Streamlit configuration
+│   └── secrets.toml         # API keys (update this!)
+├── manuals/                 # PDF manuals folder
+│   ├── Mahindra_Thar_SOP.pdf
+│   └── Maruti_Brezza_SOP.pdf
+├── README.md                # This file
+└── DEPLOYMENT.md            # Detailed deployment guide
 ```
 
-## ⚙️ Configuration
-
-You can modify these constants in `app.py`:
-
-- `CHUNK_SIZE`: Size of text chunks for RAG (default: 800)
-- `CHUNK_OVERLAP`: Overlap between chunks (default: 100)
-- `TOP_K_RESULTS`: Number of relevant chunks to retrieve (default: 3)
-- `SYSTEM_PROMPT`: Instructions for the AI supervisor
+---
 
 ## 🔧 Troubleshooting
 
-**No manuals loaded**
-- Ensure the `manuals/` folder exists
-- Add at least one PDF file to the folder
-- Restart the application
+**App won't start on Streamlit Cloud**
+- Verify `OPENAI_API_KEY` is set in Streamlit Cloud secrets
+- Check deployment logs in Streamlit Cloud dashboard
+- Ensure `manuals/` folder exists in GitHub repo
 
-**API Key errors**
-- Verify your `.env` file contains a valid `OPENAI_API_KEY`
-- Check that the key has sufficient credits
+**No manuals loaded**
+- Ensure `manuals/` folder (lowercase) is committed to GitHub
+- Verify PDF files are in the folder
+- Check app logs for errors
 
 **Audio not working**
-- Ensure your browser allows microphone access
-- Check that your speakers/headphones are connected
+- Ensure browser allows microphone access
+- Try Chrome or Safari (best compatibility)
+- Check mobile browser settings
 
-## 📝 License
+---
 
-This project is for demonstration purposes for Spark Minda factory floor operations.
+## 📝 Next Steps
 
-## 🤝 Support
+- **For Demo**: Use Streamlit Cloud deployment (current setup)
+- **For Production**: Consider GCP deployment for better control and security
 
-For issues or questions, please contact the development team.
+For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md)
+
+
