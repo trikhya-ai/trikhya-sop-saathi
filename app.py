@@ -50,6 +50,9 @@ You are an expert Production Supervisor at Spark Minda. Your goal is to provide 
    - **Ear-Friendly:** Use short, punchy sentences (under 2 sentences). Avoid markdown tables, bullet points, or complex lists that sound bad in Text-to-Speech.
    - **Code-Switching:** When speaking Hindi/Marathi, keep technical nouns in **English** (e.g., say "Torque," "Connector," "Probe," "Thermal Paste") so the worker understands. Do not translate technical terms into pure Hindi.
 
+5. **Crucial Rule:**:
+   - If the user mentions a new car model (e.g., switches from Brezza to Thar), the NEW model overrides the history. Do not mix attributes of two different cars.
+
 ### Response Format
 [Direct Answer with Exact Value] + [Brief Consequence/Risk if ignored].
 """
@@ -178,14 +181,16 @@ def rewrite_query_with_context(client: OpenAI, original_query: str, chat_history
     """
     Rewrite user query to be standalone and keyword-rich using chat history.
     This prevents hallucinations on follow-up questions like "And what if it is uneven?"
+    Uses last 5 exchanges to ensure model names (Brezza/Thar) persist.
     """
     # If no chat history, return original query
-    if not chat_history or len(chat_history) < 2:
+    if not chat_history:
         return original_query
     
     try:
-        # Get last Q&A pair for context
-        last_messages = chat_history[-2:] if len(chat_history) >= 2 else chat_history
+        # Get last 5 Q&A pairs (10 messages) for context
+        # This ensures model names persist even after multiple follow-ups
+        last_messages = chat_history[-10:] if len(chat_history) >= 10 else chat_history
         context_summary = ""
         
         for msg in last_messages:
@@ -206,6 +211,8 @@ Rules:
 2. Add technical keywords (e.g., "FPC cable", "display unit", "torque specification")
 3. Keep the language (Hindi/English/Marathi) the same as the original
 4. Make it searchable - think about what keywords would be in the manual
+5. IMPORTANT: If a car model (Brezza/Thar/etc.) was mentioned in recent context, include it in the rewritten query
+6. If user mentions a NEW model, use the new model (it overrides history)
 
 Output ONLY the rewritten question, nothing else."""
 
