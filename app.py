@@ -158,27 +158,41 @@ def get_answer_from_rag(query: str, vector_store: FAISS, client: OpenAI) -> tupl
         if not docs_with_scores:
             return "मुझे इस सवाल का जवाब मैनुअल में नहीं मिला। / I couldn't find an answer in the manuals.", "N/A"
         
-        # Extract documents and sort by score (lower score = more similar)
+        # Extract documents (already sorted by score - lower is better)
         docs = [doc for doc, score in docs_with_scores]
         
-        # Prepare context from retrieved documents
-        context = "\n\n".join([doc.page_content for doc in docs])
+        # Prepare context with source labels
+        context_parts = []
+        for i, doc in enumerate(docs):
+            source_name = doc.metadata.get("source", "Unknown")
+            context_parts.append(f"[Source: {source_name}]\n{doc.page_content}")
+        context = "\n\n".join(context_parts)
         
-        # Extract source from the MOST relevant document (first one, lowest score)
-        source = docs[0].metadata.get("source", "Unknown")
+        # Enhanced system prompt to identify source
+        enhanced_prompt = SYSTEM_PROMPT + "\n\nIMPORTANT: After answering, on a new line write 'SOURCE_USED: ' followed by the exact filename of the source document you primarily used for your answer."
         
         # Generate answer using GPT-4o
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": enhanced_prompt},
                 {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {query}"}
             ],
             temperature=0.3,
-            max_tokens=150
+            max_tokens=200
         )
         
-        answer = response.choices[0].message.content.strip()
+        full_response = response.choices[0].message.content.strip()
+        
+        # Extract answer and source from response
+        if "SOURCE_USED:" in full_response:
+            parts = full_response.split("SOURCE_USED:")
+            answer = parts[0].strip()
+            source = parts[1].strip()
+        else:
+            # Fallback to first document if GPT doesn't specify
+            answer = full_response
+            source = docs[0].metadata.get("source", "Unknown")
         
         return answer, source
     except Exception as e:
