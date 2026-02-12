@@ -355,23 +355,12 @@ def render_header():
     }
     
     /* User messages - Light Blue background */
-    [data-testid="stChatMessageContent"]:has(+ [data-testid="stChatMessageAvatar"]:contains("👷")) {
-        background-color: #E3F2FD !important;
-        border-left: 4px solid #2196F3 !important;
-    }
-    
-    /* Assistant messages - Light Green background */
-    [data-testid="stChatMessageContent"]:has(+ [data-testid="stChatMessageAvatar"]:contains("🤖")) {
-        background-color: #E8F5E9 !important;
-        border-left: 4px solid #4CAF50 !important;
-    }
-    
-    /* Alternative approach using attribute selectors */
     div[data-testid="stChatMessage"]:has(div[aria-label*="user"]) {
         background-color: #E3F2FD !important;
         border-left: 4px solid #2196F3 !important;
     }
     
+    /* Assistant messages - Light Green background */
     div[data-testid="stChatMessage"]:has(div[aria-label*="assistant"]) {
         background-color: #E8F5E9 !important;
         border-left: 4px solid #4CAF50 !important;
