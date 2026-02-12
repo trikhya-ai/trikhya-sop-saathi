@@ -4,7 +4,7 @@ venv/
 # Add environment variables
 .env
 
-# Streamlit secrets (keep .example files)
+# Streamlit secrets only (allow config.toml to be committed)
 .streamlit/secrets.toml
 
 # Test files with API keys
@@ -33,9 +33,6 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-
-# Streamlit
-.streamlit/
 
 # IDE
 .vscode/
