@@ -24,10 +24,35 @@ MANUALS_FOLDER = "manuals"
 CHUNK_SIZE = 800
 CHUNK_OVERLAP = 100
 TOP_K_RESULTS = 3
-SYSTEM_PROMPT = """You are an expert Production Supervisor at Spark Minda. 
-Answer strictly based on the context provided. 
-Detect the user's language (Hindi, Marathi, or English) and reply in the SAME language. 
-Keep answers short (under 2 sentences) and authoritative."""
+SYSTEM_PROMPT = """
+### System Persona
+You are an expert Production Supervisor at Spark Minda. Your goal is to provide precise, authoritative assembly instructions to factory workers on the shop floor.
+
+### Operational Guidelines
+
+1. **Input Analysis:**
+   - Detect if the user is speaking English, Hindi, Marathi, or "Hinglish" (Mixed).
+   - Acknowledge that workers often use technical English nouns mixed with vernacular grammar.
+
+2. **Cognitive Process (Mental Translation):**
+   - **Internal Mapping:** If the user speaks in Hindi/Marathi, internally translate their intent to the English technical keywords found in the SOP context.
+     - *Example:* If user asks for "garmi" (heat), look for "Thermal" or "Overheating" in the context.
+     - *Example:* If user asks for "taar" (wire), look for "Cable", "FPC", or "Harness".
+   - Use this internal understanding to retrieve the most accurate technical answer from the provided English context.
+
+3. **Precision Protocol (Anti-Hallucination):**
+   - **QUOTE EXACT VALUES:** If the manual says "< 1mA", state "less than 1 milliamp". Do NOT estimate or round it to "0.5mA".
+   - **EXACT TORQUE:** If the manual specifies "0.6 Nm", state "0.6 Newton Meters". Do not round down to "0.5 Nm". Accuracy is safety.
+   - If the specific value is not in the context, state "Data not found in SOP" rather than guessing.
+
+4. **Voice-Optimized Output:**
+   - **Language Matching:** Reply in the SAME language structure as the user. (User speaks Hindi -> You speak Hindi).
+   - **Ear-Friendly:** Use short, punchy sentences (under 2 sentences). Avoid markdown tables, bullet points, or complex lists that sound bad in Text-to-Speech.
+   - **Code-Switching:** When speaking Hindi/Marathi, keep technical nouns in **English** (e.g., say "Torque," "Connector," "Probe," "Thermal Paste") so the worker understands. Do not translate technical terms into pure Hindi.
+
+### Response Format
+[Direct Answer with Exact Value] + [Brief Consequence/Risk if ignored].
+"""
 
 # ============================================================================
 # PAGE CONFIGURATION
@@ -148,6 +173,64 @@ def transcribe_audio(client: OpenAI, audio_bytes: bytes) -> Optional[str]:
     except Exception as e:
         st.error(f"❌ Transcription error: {str(e)}")
         return None
+
+def rewrite_query_with_context(client: OpenAI, original_query: str, chat_history: list) -> str:
+    """
+    Rewrite user query to be standalone and keyword-rich using chat history.
+    This prevents hallucinations on follow-up questions like "And what if it is uneven?"
+    """
+    # If no chat history, return original query
+    if not chat_history or len(chat_history) < 2:
+        return original_query
+    
+    try:
+        # Get last Q&A pair for context
+        last_messages = chat_history[-2:] if len(chat_history) >= 2 else chat_history
+        context_summary = ""
+        
+        for msg in last_messages:
+            role = "User" if msg["role"] == "user" else "Assistant"
+            context_summary += f"{role}: {msg['content']}\n"
+        
+        # Rewriting prompt
+        rewrite_prompt = f"""Given this conversation context:
+
+{context_summary}
+
+The user now asks: "{original_query}"
+
+Your task: Rewrite this question to be STANDALONE and SPECIFIC, explicitly mentioning the subject from the previous conversation. Include technical keywords that would appear in an SOP manual.
+
+Rules:
+1. If the question refers to "it", "that", "this", replace with the actual subject
+2. Add technical keywords (e.g., "FPC cable", "display unit", "torque specification")
+3. Keep the language (Hindi/English/Marathi) the same as the original
+4. Make it searchable - think about what keywords would be in the manual
+
+Output ONLY the rewritten question, nothing else."""
+
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are a query rewriting assistant for technical SOP manuals."},
+                {"role": "user", "content": rewrite_prompt}
+            ],
+            temperature=0.2,
+            max_tokens=100
+        )
+        
+        rewritten_query = response.choices[0].message.content.strip()
+        
+        # Debug output
+        print(f"\n🔄 QUERY REWRITE:")
+        print(f"   Original: {original_query}")
+        print(f"   Rewritten: {rewritten_query}\n")
+        
+        return rewritten_query
+        
+    except Exception as e:
+        st.warning(f"⚠️ Query rewriting failed, using original: {str(e)}")
+        return original_query
 
 def get_answer_from_rag(query: str, vector_store: FAISS, client: OpenAI) -> tuple[str, str]:
     """Get answer using RAG pipeline."""
@@ -397,9 +480,17 @@ def main():
                 })
                 
                 with st.spinner("🧠 Searching manuals and generating answer..."):
-                    # Get answer from RAG
-                    answer, source = get_answer_from_rag(
+                    # CONTEXTUAL QUERY REWRITING: Rewrite query using chat history
+                    # This prevents hallucinations on follow-up questions
+                    rewritten_query = rewrite_query_with_context(
+                        client, 
                         question, 
+                        st.session_state.messages[:-1]  # Exclude the just-added question
+                    )
+                    
+                    # Get answer from RAG using the rewritten query
+                    answer, source = get_answer_from_rag(
+                        rewritten_query,  # Use rewritten query for search
                         st.session_state.vector_store, 
                         client
                     )
