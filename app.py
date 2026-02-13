@@ -355,17 +355,40 @@ def render_header():
         }
         
         /* LARGE microphone button for mobile - HERO ELEMENT */
+        /* Remove default Streamlit audio input styling */
+        .stAudioInput {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+        }
+        
+        .stAudioInput > div {
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            padding: 1rem 0 !important;
+        }
+        
+        /* Style the actual microphone button */
         .stAudioInput button {
             min-height: 80px !important;
             min-width: 80px !important;
+            width: 80px !important;
+            height: 80px !important;
             border-radius: 50% !important;
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%) !important;
             box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3) !important;
+            border: none !important;
+            padding: 0 !important;
         }
         
         .stAudioInput button:hover {
             transform: scale(1.05) !important;
             box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4) !important;
+        }
+        
+        .stAudioInput button:active {
+            transform: scale(0.95) !important;
         }
         
         /* Better spacing for chat messages */
