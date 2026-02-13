@@ -355,13 +355,14 @@ def render_header():
         }
         
         /* LARGE microphone button for mobile - HERO ELEMENT */
-        /* Remove default Streamlit audio input styling */
+        /* Hide all the messy Streamlit audio controls */
         .stAudioInput {
             display: flex !important;
             justify-content: center !important;
             align-items: center !important;
         }
         
+        /* Hide the container borders and background */
         .stAudioInput > div {
             border: none !important;
             background: transparent !important;
@@ -369,26 +370,40 @@ def render_header():
             padding: 1rem 0 !important;
         }
         
-        /* Style the actual microphone button */
-        .stAudioInput button {
-            min-height: 80px !important;
-            min-width: 80px !important;
-            width: 80px !important;
-            height: 80px !important;
+        /* Hide the waveform visualization and extra controls */
+        .stAudioInput audio,
+        .stAudioInput canvas,
+        .stAudioInput [data-testid="stAudioInputWaveform"],
+        .stAudioInput svg {
+            display: none !important;
+        }
+        
+        /* Hide play/download buttons after recording */
+        .stAudioInput button:not(:first-child) {
+            display: none !important;
+        }
+        
+        /* Style ONLY the record button (first button) */
+        .stAudioInput button:first-child {
+            min-height: 100px !important;
+            min-width: 100px !important;
+            width: 100px !important;
+            height: 100px !important;
             border-radius: 50% !important;
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%) !important;
-            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3) !important;
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4) !important;
             border: none !important;
             padding: 0 !important;
+            margin: 0 auto !important;
         }
         
-        .stAudioInput button:hover {
-            transform: scale(1.05) !important;
-            box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4) !important;
+        .stAudioInput button:first-child:hover {
+            transform: scale(1.08) !important;
+            box-shadow: 0 8px 24px rgba(255, 107, 107, 0.5) !important;
         }
         
-        .stAudioInput button:active {
-            transform: scale(0.95) !important;
+        .stAudioInput button:first-child:active {
+            transform: scale(0.92) !important;
         }
         
         /* Better spacing for chat messages */
