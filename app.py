@@ -49,7 +49,7 @@ You are an expert Production Supervisor at Spark Minda. Your goal is to provide 
 3. **Precision Protocol (Anti-Hallucination):**
    - **QUOTE EXACT VALUES:** If the manual says "< 1mA", state "less than 1 milliamp". Do NOT estimate or round it to "0.5mA".
    - **EXACT TORQUE:** If the manual specifies "0.6 Nm", state "0.6 Newton Meters". Do not round down to "0.5 Nm". Accuracy is safety.
-   - If the specific value is not in the context, state "Data not found in SOP" rather than guessing.
+   - If the specific value is not in the context, politely inform the user in their own language (Hindi/Marathi/English) that this specific data is not mentioned in the SOP. Do not guess.
 
 4. **Voice-Optimized Output:**
    - **Language Matching:** Reply in the SAME language structure as the user. (User speaks Hindi -> You speak Hindi).
@@ -310,50 +310,82 @@ def text_to_speech(client: OpenAI, text: str) -> Optional[bytes]:
 
 def render_header():
     """Render application header."""
-    # Mobile-friendly CSS
+    # Mobile-optimized CSS with compact spacing
     st.markdown("""
     <style>
+    /* Reduce overall padding for compact layout */
+    .main .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+    
+    /* Compact headers */
+    h1 {
+        margin-bottom: 0.2rem !important;
+    }
+    
+    h3 {
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    /* Reduce divider spacing */
+    hr {
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
     /* Mobile-optimized styles */
     @media (max-width: 768px) {
         .main .block-container {
-            padding-top: 2rem;
+            padding-top: 0.5rem !important;
             padding-left: 1rem;
             padding-right: 1rem;
         }
         
         h1 {
-            font-size: 1.8rem !important;
+            font-size: 1.5rem !important;
+            margin-bottom: 0.1rem !important;
         }
         
-        /* Larger touch targets for mobile */
-        button {
-            min-height: 3rem !important;
+        h3 {
             font-size: 1.1rem !important;
+            margin-top: 0.3rem !important;
+            margin-bottom: 0.2rem !important;
+        }
+        
+        /* LARGE microphone button for mobile - HERO ELEMENT */
+        .stAudioInput button {
+            min-height: 80px !important;
+            min-width: 80px !important;
+            border-radius: 50% !important;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%) !important;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3) !important;
+        }
+        
+        .stAudioInput button:hover {
+            transform: scale(1.05) !important;
+            box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4) !important;
         }
         
         /* Better spacing for chat messages */
         .stChatMessage {
-            padding: 1rem !important;
-            margin-bottom: 1rem !important;
-        }
-        
-        /* Audio input optimization */
-        audio {
-            width: 100% !important;
+            padding: 0.8rem !important;
+            margin-bottom: 0.5rem !important;
         }
     }
     
     /* General improvements */
     .stAudio {
-        margin: 1rem 0;
+        margin: 0.5rem 0;
     }
     
     /* Enhanced chat bubble styling with distinct colors */
     .stChatMessage {
         border-radius: 12px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        padding: 1rem;
-        margin-bottom: 1rem;
+        padding: 0.8rem;
+        margin-bottom: 0.5rem;
     }
     
     /* User messages - Light Blue background */
@@ -371,9 +403,7 @@ def render_header():
     """, unsafe_allow_html=True)
     
     st.title("🏭 Trikhya SOP Saathi")
-    st.markdown("**Voice-Activated AI Supervisor**")
-    st.caption("Ask questions about factory SOPs in Hindi, Marathi, or English")
-    st.divider()
+    st.caption("Voice-Activated AI Supervisor • Hindi, Marathi, English")
 
 def render_sidebar():
     """Render sidebar with information."""
@@ -494,10 +524,9 @@ def main():
     
     st.divider()
     
-    # Audio input section (MOVED TO TOP)
+    # Audio input section - microphone is the hero element
     st.markdown("### 🎤 Ask Your Question")
-    st.info("👇 Tap the microphone below to record your question")
-    audio_bytes = st.audio_input("Record your question")
+    audio_bytes = st.audio_input("Record your question", label_visibility="collapsed")
     
     if audio_bytes:
         # Get audio hash to prevent reprocessing the same audio
@@ -561,10 +590,9 @@ def main():
     # Divider before history
     st.divider()
     
-    # Chat history section (NOW BELOW INPUT)
+    # Chat history section (compact)
     if st.session_state.messages:
         st.markdown("### 📜 Chat History")
-        st.caption("Latest questions and answers appear first")
         render_chat_history()
 
 if __name__ == "__main__":
