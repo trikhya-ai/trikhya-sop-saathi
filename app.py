@@ -320,7 +320,7 @@ def render_header():
     <style>
     /* Reduce overall padding for compact layout */
     .main .block-container {
-        padding-top: 0.3rem !important;
+        padding-top: 0 !important;
         padding-bottom: 1rem !important;
     }
     
@@ -343,7 +343,7 @@ def render_header():
     /* Mobile-optimized styles */
     @media (max-width: 768px) {
         .main .block-container {
-            padding-top: 0.2rem !important;
+            padding-top: 0 !important;
             padding-left: 1rem;
             padding-right: 1rem;
         }
