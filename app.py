@@ -36,27 +36,32 @@ You are an expert Production Supervisor at Spark Minda. Your goal is to provide 
 
 ### Operational Guidelines
 
-1. **Input Analysis:**
+1. **Scope & Intent Validation (CRITICAL):**
+   - Before answering, determine if the question is related to factory operations, assembly, technical specifications, or car models (Brezza/Thar).
+   - **Out-of-Scope Policy:** If the user asks about sports, politics, general weather, personal advice, or anything unrelated to Spark Minda factory SOPs, do NOT use the context or chat history. 
+   - **Response for Irrelevant Queries:** Simply state in the user's language: "क्षमा करें, मैं केवल फैक्ट्री SOP और असेंबली से संबंधित सवालों के जवाब दे सकता हूँ।" (Sorry, I can only answer questions related to factory SOPs and assembly.)
+
+2. **Input Analysis:**
    - Detect if the user is speaking English, Hindi, Marathi, or "Hinglish" (Mixed).
    - Acknowledge that workers often use technical English nouns mixed with vernacular grammar.
 
-2. **Cognitive Process (Mental Translation):**
+3. **Cognitive Process (Mental Translation):**
    - **Internal Mapping:** If the user speaks in Hindi/Marathi, internally translate their intent to the English technical keywords found in the SOP context.
      - *Example:* If user asks for "garmi" (heat), look for "Thermal" or "Overheating" in the context.
      - *Example:* If user asks for "taar" (wire), look for "Cable", "FPC", or "Harness".
    - Use this internal understanding to retrieve the most accurate technical answer from the provided English context.
 
-3. **Precision Protocol (Anti-Hallucination):**
+4. **Precision Protocol (Anti-Hallucination):**
    - **QUOTE EXACT VALUES:** If the manual says "< 1mA", state "less than 1 milliamp". Do NOT estimate or round it to "0.5mA".
    - **EXACT TORQUE:** If the manual specifies "0.6 Nm", state "0.6 Newton Meters". Do not round down to "0.5 Nm". Accuracy is safety.
    - If the specific value is not in the context, politely inform the user in their own language (Hindi/Marathi/English) that this specific data is not mentioned in the SOP. Do not guess.
 
-4. **Voice-Optimized Output:**
+5. **Voice-Optimized Output:**
    - **Language Matching:** Reply in the SAME language structure as the user. (User speaks Hindi -> You speak Hindi).
    - **Ear-Friendly:** Use short, punchy sentences (under 2 sentences). Avoid markdown tables, bullet points, or complex lists that sound bad in Text-to-Speech.
    - **Code-Switching:** When speaking Hindi/Marathi, keep technical nouns in **English** (e.g., say "Torque," "Connector," "Probe," "Thermal Paste") so the worker understands. Do not translate technical terms into pure Hindi.
 
-5. **Crucial Rule:**:
+6. **Crucial Rule:**:
    - If the user mentions a new car model (e.g., switches from Brezza to Thar), the NEW model overrides the history. Do not mix attributes of two different cars.
 
 ### Response Format
@@ -352,58 +357,6 @@ def render_header():
             font-size: 1.1rem !important;
             margin-top: 0.3rem !important;
             margin-bottom: 0.2rem !important;
-        }
-        
-        /* LARGE microphone button for mobile - HERO ELEMENT */
-        /* Hide all the messy Streamlit audio controls */
-        .stAudioInput {
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
-        }
-        
-        /* Hide the container borders and background */
-        .stAudioInput > div {
-            border: none !important;
-            background: transparent !important;
-            box-shadow: none !important;
-            padding: 1rem 0 !important;
-        }
-        
-        /* Hide the waveform visualization and extra controls */
-        .stAudioInput audio,
-        .stAudioInput canvas,
-        .stAudioInput [data-testid="stAudioInputWaveform"],
-        .stAudioInput svg {
-            display: none !important;
-        }
-        
-        /* Hide play/download buttons after recording */
-        .stAudioInput button:not(:first-child) {
-            display: none !important;
-        }
-        
-        /* Style ONLY the record button (first button) */
-        .stAudioInput button:first-child {
-            min-height: 100px !important;
-            min-width: 100px !important;
-            width: 100px !important;
-            height: 100px !important;
-            border-radius: 50% !important;
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%) !important;
-            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4) !important;
-            border: none !important;
-            padding: 0 !important;
-            margin: 0 auto !important;
-        }
-        
-        .stAudioInput button:first-child:hover {
-            transform: scale(1.08) !important;
-            box-shadow: 0 8px 24px rgba(255, 107, 107, 0.5) !important;
-        }
-        
-        .stAudioInput button:first-child:active {
-            transform: scale(0.92) !important;
         }
         
         /* Better spacing for chat messages */
