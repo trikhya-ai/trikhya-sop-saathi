@@ -24,6 +24,12 @@ MANUALS_FOLDER = "manuals"
 CHUNK_SIZE = 800
 CHUNK_OVERLAP = 100
 TOP_K_RESULTS = 3
+
+# Model-to-file mapping
+MODEL_FILE_MAPPING = {
+    "Maruti Brezza": "manuals/Maruti_Brezza_SOP.pdf",
+    "Mahindra Thar": "manuals/Mahindra_Thar_SOP.pdf"
+}
 SYSTEM_PROMPT = """
 ### System Persona
 You are an expert Production Supervisor at Spark Minda. Your goal is to provide precise, authoritative assembly instructions to factory workers on the shop floor.
@@ -81,35 +87,28 @@ def init_openai_client() -> Optional[OpenAI]:
         return None
     return OpenAI(api_key=api_key)
 
-def load_pdfs_from_folder(folder_path: str) -> List[Document]:
-    """Load all PDF files from the specified folder."""
+def load_single_pdf(pdf_path: str) -> List[Document]:
+    """Load a single PDF file."""
     documents = []
-    folder = Path(folder_path)
+    pdf_file = Path(pdf_path)
     
-    if not folder.exists():
-        st.warning(f"📁 Folder '{folder_path}' not found. Please create it and add PDF manuals.")
+    if not pdf_file.exists():
+        st.error(f"📄 PDF file not found: {pdf_path}")
         return documents
     
-    pdf_files = list(folder.glob("*.pdf"))
-    
-    if not pdf_files:
-        st.warning(f"📄 No PDF files found in '{folder_path}'. Please add manual PDFs.")
-        return documents
-    
-    with st.spinner(f"📚 Loading {len(pdf_files)} PDF manual(s)..."):
-        for pdf_file in pdf_files:
-            try:
-                loader = PyPDFLoader(str(pdf_file))
-                pdf_docs = loader.load()
-                
-                # Attach filename as metadata to each chunk
-                for doc in pdf_docs:
-                    doc.metadata["source"] = pdf_file.name
-                
-                documents.extend(pdf_docs)
-                st.sidebar.success(f"✅ Loaded: {pdf_file.name}")
-            except Exception as e:
-                st.sidebar.error(f"❌ Failed to load {pdf_file.name}: {str(e)}")
+    try:
+        with st.spinner(f"📚 Loading {pdf_file.name}..."):
+            loader = PyPDFLoader(str(pdf_file))
+            pdf_docs = loader.load()
+            
+            # Attach filename as metadata to each chunk
+            for doc in pdf_docs:
+                doc.metadata["source"] = pdf_file.name
+            
+            documents.extend(pdf_docs)
+            st.sidebar.success(f"✅ Loaded: {pdf_file.name}")
+    except Exception as e:
+        st.sidebar.error(f"❌ Failed to load {pdf_file.name}: {str(e)}")
     
     return documents
 
@@ -142,6 +141,9 @@ def initialize_session_state():
     """Initialize session state variables."""
     if "messages" not in st.session_state:
         st.session_state.messages = []
+    
+    if "current_model" not in st.session_state:
+        st.session_state.current_model = None
     
     if "vector_store" not in st.session_state:
         st.session_state.vector_store = None
@@ -378,10 +380,13 @@ def render_sidebar():
     with st.sidebar:
         st.header("📋 Status")
         
+        if st.session_state.current_model:
+            st.success(f"✅ {st.session_state.current_model}")
+        
         if st.session_state.vector_store:
-            st.success("✅ Ready")
+            st.success("✅ Manual Loaded")
         else:
-            st.warning("⚠️ No manuals")
+            st.warning("⚠️ No manual loaded")
         
         st.divider()
         
@@ -447,23 +452,47 @@ def main():
     if not client:
         st.stop()
     
-    # Load vector store (only once)
+    # Render UI
+    render_header()
+    
+    # ========================================================================
+    # MODEL SELECTION (Top of page for mobile visibility)
+    # ========================================================================
+    st.markdown("### 🚗 Select Assembly Line")
+    selected_model = st.radio(
+        "Choose your production line:",
+        options=list(MODEL_FILE_MAPPING.keys()),
+        horizontal=True,
+        label_visibility="collapsed"
+    )
+    
+    # DETECT MODEL CHANGE - Clear state if model switched
+    if st.session_state.current_model != selected_model:
+        st.session_state.current_model = selected_model
+        st.session_state.vector_store = None
+        st.session_state.vector_store_loaded = False
+        st.session_state.messages = []  # Clear chat history
+        st.session_state.last_processed_audio = None
+        st.rerun()  # Force UI refresh
+    
+    # LOAD MODEL-SPECIFIC PDF
     if not st.session_state.vector_store_loaded:
-        documents = load_pdfs_from_folder(MANUALS_FOLDER)
+        pdf_path = MODEL_FILE_MAPPING[selected_model]
+        documents = load_single_pdf(pdf_path)
         if documents:
             st.session_state.vector_store = create_vector_store(documents)
             st.session_state.vector_store_loaded = True
         else:
             st.session_state.vector_store_loaded = True  # Mark as attempted
     
-    # Render UI
-    render_header()
     render_sidebar()
     
     # Check if vector store is ready
     if not st.session_state.vector_store:
-        st.error("⚠️ Please add PDF manuals to the 'manuals' folder and restart the app.")
+        st.error(f"⚠️ Failed to load manual for {selected_model}. Please check the file exists.")
         st.stop()
+    
+    st.divider()
     
     # Audio input section (MOVED TO TOP)
     st.markdown("### 🎤 Ask Your Question")
