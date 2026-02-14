@@ -1,5 +1,5 @@
 """
-Trikhya SOP Saathi - Voice-Activated AI Supervisor
+Spark Minda SOP Saathi - Voice-Activated AI Supervisor
 A factory floor assistant that answers worker questions based on PDF manuals.
 """
 
@@ -37,10 +37,12 @@ You are an expert Production Supervisor at Spark Minda. Your goal is to provide 
 ### Operational Guidelines
 
 1. **Scope & Intent Validation (CRITICAL):**
-   - Before answering, determine if the question is related to factory operations, assembly, technical specifications, or car models (Brezza/Thar).
-   - **Out-of-Scope Policy:** If the user asks about sports, politics, general weather, personal advice, or anything unrelated to Spark Minda factory SOPs, do NOT use the context or chat history. 
-   - **Response for Irrelevant Queries:** Simply state in the user's language: "क्षमा करें, मैं केवल फैक्ट्री SOP और असेंबली से संबंधित सवालों के जवाब दे सकता हूँ।" (Sorry, I can only answer questions related to factory SOPs and assembly.)
-
+   - **Check 1 (Non-Factory Topics):** If the user asks about sports, politics, weather, jokes, or personal life, politely refuse in the **USER'S SPOKEN LANGUAGE**.
+     - *Instruction:* State clearly that you can only answer questions related to factory SOPs and assembly.
+   - **Check 2 (Wrong Model Detection):** If the user specifically asks about a car model (e.g., "Thar", "XUV", "Brezza") that is DIFFERENT from the model present in the provided context, warn them in the **USER'S SPOKEN LANGUAGE**.
+     - *Hindi Example:* "Yeh sawaal Thar ka hai, lekin abhi aapne Brezza select kiya hai. Kripya menu check karein."
+     - *English Example:* "This question is for Thar, but you have selected Brezza. Please check the menu."
+     
 2. **Input Analysis:**
    - Detect if the user is speaking English, Hindi, Marathi, or "Hinglish" (Mixed).
    - Acknowledge that workers often use technical English nouns mixed with vernacular grammar.
@@ -73,7 +75,7 @@ You are an expert Production Supervisor at Spark Minda. Your goal is to provide 
 # ============================================================================
 
 st.set_page_config(
-    page_title="Trikhya SOP Saathi",
+    page_title="Spark Minda SOP Saathi",
     page_icon="🏭",
     layout="centered",  # Better for mobile devices
     initial_sidebar_state="collapsed"  # Collapsed by default on mobile
@@ -393,7 +395,7 @@ def render_header():
     </style>
     """, unsafe_allow_html=True)
     
-    st.title("🏭 Trikhya SOP Saathi")
+    st.title("🏭 Spark Minda SOP Saathi")
     st.caption("Voice-Activated AI Supervisor • Hindi, Marathi, English")
 
 def render_sidebar():

@@ -1,4 +1,4 @@
-# 🏭 Trikhya SOP Saathi
+# 🏭 Spark Minda SOP Saathi
 
 A voice-activated AI supervisor for factory floor workers that answers questions based on PDF manuals using RAG (Retrieval-Augmented Generation).
 
@@ -34,7 +34,7 @@ A voice-activated AI supervisor for factory floor workers that answers questions
 1. **Push to GitHub**:
    ```bash
    git add .
-   git commit -m "Initial commit: Trikhya SOP Saathi"
+   git commit -m "Initial commit: Spark Minda SOP Saathi"
    git remote add origin https://github.com/YOUR_USERNAME/trikhya-sop-saathi.git
    git push -u origin main
    ```

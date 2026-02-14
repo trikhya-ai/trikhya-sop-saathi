@@ -17,7 +17,7 @@
    cd /Users/abhishekgoel/my-agy-projects/spark_minda_agent
    git init
    git add .
-   git commit -m "Initial commit: Trikhya SOP Saathi"
+   git commit -m "Initial commit: Spark Minda SOP Saathi"
    ```
 
 2. **Create a new repository on GitHub**:
